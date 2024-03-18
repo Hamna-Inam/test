@@ -1,88 +1,65 @@
 import {Express, Request, Response, NextFunction } from "express";
 
-function routes(app: Express){
+function routes(app: Express) {
 
-    app.get('/api/courses',(req:Request, res:Response)=>{
-        return res.send('Hello World2');
+    let books: { bookId: number, title: string, author: string }[] = [];
+    let Id = 1; // Used to generate unique IDs for new books
+
+ 
+    app.post("/api/addbook", (req: Request, res: Response) => {
+        
+        const { title, author } = req.body;
+
+        const bookId = Id++;
+    
+        // Add the book to the array
+        books.push({ bookId ,title, author });
+    
+        // Send back a success response
+        return res.status(201).json({ message: "Book added successfully", book: { title, author } });
     });
 
+    app.get("/api/getallbooks", (req: Request, res: Response) => {
+        
+        return res.status(200).json(books);
+    });
 
-    function routes(app:Express) {
-    app.get ("/h",GetBookHandler);
+    app.patch("/api/updatebook", (req: Request, res: Response) => {
+        
+        const { id , title, author } = req.body;
+    
+        const index = books.findIndex(book => book.bookId === id);
+
+        
+        if (index === -1) {
+            return res.status(404).send("Book not found.");
+        }
+    
+        
+            books[index].title = title;
+        
+            books[index].author = author;
+        
+
+        return res.status(200).json( books[index]);
+    });
+
+    app.delete("/api/deletebook",(req:Request, res: Response) => {
+
+        const id = parseInt(req.query.id as string);
+
+        const index = books.findIndex(book => book.bookId === id);
+
+    
+    if (index === -1) {
+        return res.status(404).send("Book not found.");
     }
-app.all('/api/all',(req:Request, res:Response)=>{
-    return res.sendStatus(200); 
- });
- 
- app.post("/api/data",(req:Request, res:Response)=>{
-     console.log(req.body);
- 
-     return res.sendStatus(200);
- });
- 
- //chain requests
- 
- app.route("/")
- .get((req:Request, res:Response)=>{
-     return res.send("You sent a get request")
- })
- .post((req:Request, res:Response)=>{
-     return res.send("You sent a post request")
- })
- .put((req:Request, res:Response)=>{
-     return res.send("You sent a put request")
- })
- .all((req:Request, res:Response)=>{
-     return res.send("You sent an X request")
- })
 
- 
-app.get("/ab*cd",(req:Request, res:Response)=> res.send("/ab*cd"));
-app.get("/abc",(req,res)=> res.send("abcc"));
-  
-     app.get ("/redirect",(req:Request, res:Response ) => {
-         return res.redirect("http://example.com");
-      });
-     
-      app.get("/api/books/:bookID/:authorID",(req:Request, res:Response)=>{
-         console.log(req.params);
-     
-         return res.send(req.params.authorID + "\n" + req.params.bookID);
-      })
-     
-     app.get("/health",(req,res)=>
-        res.sendStatus(200));
-     
-     function handleGetBookOne(req:Request, res:Response,next: NextFunction){
-         console.log("First Handler");
-     
-         next(); 
-     }
-     
-     
-     function handleGetBookTwo (req:Request, res:Response, next:NextFunction) {
-         console.log ("Second handler");
-     
-         return res.send(req.params);
-     
-     }
-     
-     
-     //app.get("/api/bookName/:bookName/:authorName",[handleGetBookOne,handleGetBookTwo]);
-     
-     app.get("/api/bookProperties/:bookName/:authorName", //route path
-     
-         function(req:Request, res:Response, next:NextFunction) { //handler
-         console.log("First Function");
-         next();
-     
-     }, function(req:Request, res:Response, next:NextFunction) {
-         return res.send(req.params);
-     
-     });
-     
-     
-     
+    books.splice(index, 1);
+
+    return res.status(204).send();
+
+    });     
      
 }
 export default routes; 
